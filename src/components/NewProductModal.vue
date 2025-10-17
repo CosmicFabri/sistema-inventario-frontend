@@ -3,39 +3,22 @@ import { ref } from 'vue'
 import { Dialog } from 'primevue'
 import { InputText } from 'primevue'
 import { Button } from 'primevue'
-import { inventoryApi } from '@/api/inventoryApi'
 
 const emit = defineEmits(['save', 'close'])
 
 const nombre = ref('')
 const descripcion = ref('')
 
-function saveProduct() {
-  if (!nombre.value.trim() || !descripcion.value.trim()) return
-  emit('save', { nombre: nombre.value, descripcion: descripcion.value })
+const submit = () => {
+  const product = {
+    nombre: nombre.value,
+    descripcion: descripcion.value
+  }
+
+  emit('save', product)  // send product to parent
   nombre.value = ''
   descripcion.value = ''
 }
-
-const uploadProduct = async () => {
-  try {
-    const product = {
-      nombre: nombre.value,
-      descripcion: descripcion.value
-    }
-    console.log(product)
-    await inventoryApi.post('index.php', product)
-
-    // Optionally emit to update UI locally
-    // emit('save', product)
-
-    nombre.value = ''
-    descripcion.value = ''
-  } catch (error) {
-    console.error('Error uploading product:', error)
-  }
-}
-
 </script>
 
 <template>
@@ -70,11 +53,9 @@ const uploadProduct = async () => {
           label="Guardar"
           icon="pi pi-check"
           class="p-button-success"
-          @click="uploadProduct"
+          @click="submit"
         />
       </div>
     </template>
   </Dialog>
 </template>
-
-<style scoped></style>

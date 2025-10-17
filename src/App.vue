@@ -4,25 +4,10 @@ import InventoryTable from '@/components/InventoryTable.vue'
 import NewProductModal from '@/components/NewProductModal.vue'
 import { inventoryApi } from './api/inventoryApi'
 
-const products = ref([]) // initialize as an array (not null)
+const products = ref([])
 const showNewModal = ref(false)
 
-const addProduct = async (newProduct) => {
-  try {
-    const data = {
-      nombre: newProduct.nombre,
-      descripcion: newProduct.descripcion
-    }
-
-    await inventoryApi.post('index.php', data)
-  } catch (error) {
-    console.error('Error al subir producto: ', error)
-  }
-
-  showNewModal.value = false
-}
-
-onMounted(async () => {
+const fetchProducts = async () => {
   try {
     const response = await inventoryApi.get('index.php')
     products.value = response.data.productos
@@ -30,7 +15,20 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error al obtener productos: ', error)
   }
-})
+}
+
+const addProduct = async (newProduct) => {
+  try {
+    await inventoryApi.post('index.php', newProduct)
+    await fetchProducts() // refresh table
+  } catch (error) {
+    console.error('Error al subir producto: ', error)
+  } finally {
+    showNewModal.value = false // close modal
+  }
+}
+
+onMounted(fetchProducts)
 </script>
 
 <template>
