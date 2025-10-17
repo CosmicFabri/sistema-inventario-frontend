@@ -1,31 +1,48 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import InventoryTable from '@/components/InventoryTable.vue'
 import NewProductModal from '@/components/NewProductModal.vue'
+import EditProductModal from '@/components/EditProductModal.vue'
 import { inventoryApi } from './api/inventoryApi'
 
 const products = ref([])
 const showNewModal = ref(false)
+const showEditModal = ref(false)
+const selectedProduct = ref(null)
 
 const fetchProducts = async () => {
   try {
     const response = await inventoryApi.get('index.php')
     products.value = response.data.productos
-    console.log('Productos cargados:', products.value)
   } catch (error) {
-    console.error('Error al obtener productos: ', error)
+    console.error('Error al obtener productos:', error)
   }
 }
 
 const addProduct = async (newProduct) => {
   try {
     await inventoryApi.post('index.php', newProduct)
-    await fetchProducts() // refresh table
+    await fetchProducts()
   } catch (error) {
-    console.error('Error al subir producto: ', error)
+    console.error('Error al subir producto:', error)
   } finally {
-    showNewModal.value = false // close modal
+    showNewModal.value = false
   }
+}
+
+const openEditModal = (product) => {
+  selectedProduct.value = product
+  showEditModal.value = true
+}
+
+const handleSaveEdit = async () => {
+  await fetchProducts()
+  showEditModal.value = false
+}
+
+const handleDelete = async () => {
+  await fetchProducts()
+  showEditModal.value = false
 }
 
 onMounted(fetchProducts)
@@ -45,13 +62,21 @@ onMounted(fetchProducts)
     </div>
 
     <div class="w-full max-w-3xl">
-      <InventoryTable :items="products" />
+      <InventoryTable :items="products" @edit="openEditModal" />
     </div>
 
     <NewProductModal
       v-if="showNewModal"
       @save="addProduct"
       @close="showNewModal = false"
+    />
+
+    <EditProductModal
+      v-if="showEditModal"
+      :product="selectedProduct"
+      @save="handleSaveEdit"
+      @delete="handleDelete"
+      @close="showEditModal = false"
     />
   </div>
 </template>

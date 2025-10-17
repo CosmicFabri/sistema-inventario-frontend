@@ -1,6 +1,6 @@
 <script setup>
-import { defineProps } from 'vue'
-import { DataTable, Column } from 'primevue'
+import { defineProps, defineEmits } from 'vue'
+import { DataTable, Column, Button } from 'primevue'
 
 const props = defineProps({
   items: {
@@ -8,6 +8,12 @@ const props = defineProps({
     required: true
   }
 })
+
+const emit = defineEmits(['edit'])
+
+const onEdit = (item) => {
+  emit('edit', item)
+}
 </script>
 
 <template>
@@ -21,5 +27,17 @@ const props = defineProps({
     <Column field="id" header="ID" />
     <Column field="nombre" header="Nombre" />
     <Column field="descripcion" header="Descripción" />
+
+    <!-- Action column using template slot -->
+    <Column header="Acciones">
+      <template #body="{ data }">
+        <Button
+          label="Editar"
+          icon="pi pi-pencil"
+          class="p-button-sm p-button-rounded p-button-info"
+          @click="onEdit(data)"
+        />
+      </template>
+    </Column>
   </DataTable>
 </template>

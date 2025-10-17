@@ -1,6 +1,7 @@
 <script setup>
 import { Button, Dialog, InputText } from 'primevue'
 import { ref, watch } from 'vue'
+import { inventoryApi } from '@/api/inventoryApi'
 
 const props = defineProps({
   product: { type: Object, required: true }
@@ -9,10 +10,34 @@ const emit = defineEmits(['save', 'delete', 'close'])
 
 const editableProduct = ref({ ...props.product })
 
-// Keep modal data synced if a different product is selected
+// Sync if another product is selected
 watch(() => props.product, (newVal) => {
   editableProduct.value = { ...newVal }
 })
+
+const updateProduct = async () => {
+  try {
+    await inventoryApi.patch(`productos/${editableProduct.value.id}`, {
+      nombre: editableProduct.value.nombre,
+      descripcion: editableProduct.value.descripcion
+    })
+
+    console.log({editableProduct});
+    
+    emit('save') // tell parent to refresh
+  } catch (error) {
+    console.error('Error updating product:', error)
+  }
+}
+
+const deleteProduct = async () => {
+  try {
+    await inventoryApi.delete(`productos/${editableProduct.value.id}`)
+    emit('delete') // tell parent to refresh
+  } catch (error) {
+    console.error('Error deleting product:', error)
+  }
+}
 </script>
 
 <template>
@@ -46,7 +71,7 @@ watch(() => props.product, (newVal) => {
           label="Eliminar"
           icon="pi pi-trash"
           class="p-button-danger"
-          @click="emit('delete', editableProduct.id)"
+          @click="deleteProduct"
         />
         <div class="flex gap-2">
           <Button
@@ -59,12 +84,10 @@ watch(() => props.product, (newVal) => {
             label="Aceptar"
             icon="pi pi-check"
             class="p-button-success"
-            @click="emit('save', editableProduct)"
+            @click="updateProduct"
           />
         </div>
       </div>
     </template>
   </Dialog>
 </template>
-
-<style scoped></style>
