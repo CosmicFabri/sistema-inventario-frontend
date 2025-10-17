@@ -2,25 +2,35 @@
 import { onMounted, ref } from 'vue'
 import InventoryTable from '@/components/InventoryTable.vue'
 import NewProductModal from '@/components/NewProductModal.vue'
-import inventoryData from '@/data/inventoryData.js'
+import { inventoryApi } from './api/inventoryApi'
 
-const products = ref([...inventoryData])
+const products = ref([]) // initialize as an array (not null)
 const showNewModal = ref(false)
 
-function addProduct(newProduct) {
-  // Generate next ID automatically
-  const nextId =
-    products.value.length > 0
-      ? Math.max(...products.value.map(p => p.id)) + 1
-      : 1
+const addProduct = async (newProduct) => {
+  try {
+    const data = {
+      nombre: newProduct.nombre,
+      descripcion: newProduct.descripcion
+    }
 
-  products.value.push({
-    id: nextId,
-    nombre: newProduct.nombre,
-    descripcion: newProduct.descripcion
-  })
+    await inventoryApi.post('index.php', data)
+  } catch (error) {
+    console.error('Error al subir producto: ', error)
+  }
+
   showNewModal.value = false
 }
+
+onMounted(async () => {
+  try {
+    const response = await inventoryApi.get('index.php')
+    products.value = response.data.productos
+    console.log('Productos cargados:', products.value)
+  } catch (error) {
+    console.error('Error al obtener productos: ', error)
+  }
+})
 </script>
 
 <template>
@@ -47,5 +57,3 @@ function addProduct(newProduct) {
     />
   </div>
 </template>
-
-<style scoped></style>
